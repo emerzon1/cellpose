@@ -2139,7 +2139,7 @@ class MainW(QMainWindow):
         image_names = self.get_files()[0]
         self.train_data, self.train_labels, self.train_files, restore, normalize_params = io._get_train_set(
             image_names)
-        TW = guiparts.TrainWindow(self, models.MODEL_NAMES)
+        TW = guiparts.TrainWindow(self, models.MODEL_NAMES, self.model_strings)
         train = TW.exec_()
         if train:
             self.logger.info(
@@ -2152,19 +2152,31 @@ class MainW(QMainWindow):
         from cellpose.models import normalize_default
         if normalize_params is None:
             normalize_params = copy.deepcopy(normalize_default)
+
+        isCustomModel = False
         if self.training_params["model_index"] < len(models.MODEL_NAMES):
             model_type = models.MODEL_NAMES[self.training_params["model_index"]]
             self.logger.info(f"training new model starting at model {model_type}")
         else:
-            model_type = None
-            self.logger.info(f"training new model starting from scratch")
+            if (self.training_params["model_index"] - len(models.MODEL_NAMES)) < len(self.model_strings):
+                model_type = self.model_strings[self.training_params["model_index"] - len(models.MODEL_NAMES)]
+                isCustomModel = True
+                self.training_params["model_name"] = model_type
+                self.logger.info(f"updating training of custom model {model_type}")
+            else:
+                model_type = None
+                self.logger.info(f"training new model starting from scratch")
         self.current_model = model_type
         self.channels = self.get_channels()
         self.logger.info(
             f"training with chan = {self.ChannelChoose[0].currentText()}, chan2 = {self.ChannelChoose[1].currentText()}"
         )
 
-        self.model = models.CellposeModel(gpu=self.useGPU.isChecked(),
+        if (isCustomModel):
+            self.model = models.CellposeModel(gpu=self.useGPU.isChecked(),
+                                              pretrained_model=model_type)
+        else:
+            self.model = models.CellposeModel(gpu=self.useGPU.isChecked(),
                                           model_type=model_type)
         self.SizeButton.setEnabled(False)
         save_path = os.path.dirname(self.filename)

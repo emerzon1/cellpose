@@ -183,14 +183,13 @@ class DenoiseButton(QPushButton):
 
 class TrainWindow(QDialog):
 
-    def __init__(self, parent, model_strings):
+    def __init__(self, parent, model_strings, custom_model_names):
         super().__init__(parent)
         self.setGeometry(100, 100, 900, 550)
         self.setWindowTitle("train settings")
         self.win = QWidget(self)
         self.l0 = QGridLayout()
         self.win.setLayout(self.l0)
-
         yoff = 0
         qlabel = QLabel("train model w/ images + _seg.npy in current folder >>")
         qlabel.setFont(QtGui.QFont("Arial", 10, QtGui.QFont.Bold))
@@ -202,6 +201,7 @@ class TrainWindow(QDialog):
         yoff += 1
         self.ModelChoose = QComboBox()
         self.ModelChoose.addItems(model_strings)
+        self.ModelChoose.addItems(custom_model_names)
         self.ModelChoose.addItems(["scratch"])
         self.ModelChoose.setFixedWidth(150)
         self.ModelChoose.setCurrentIndex(parent.training_params["model_index"])
